@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NutriCare - スマホ栄養管理アプリ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter / Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+        }
+        .modal-bg {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm sticky top-0 z-20 border-b border-emerald-100">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-emerald-200">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-800 leading-none">NutriCare</h1>
+                    <span class="text-[10px] font-medium text-emerald-600 tracking-wider">栄養素AIチェック</span>
+                </div>
+            </div>
+            
+            <button id="hamburgerBtn" class="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-700 transition-colors focus:outline-none">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- サイドバー (ハンバーガーメニュー) -->
+    <div id="sidebarOverlay" class="fixed inset-0 modal-bg z-40 hidden transition-opacity duration-300"></div>
+    <aside id="sidebar" class="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center bg-emerald-50">
+            <span class="font-bold text-emerald-800 flex items-center gap-2">
+                <i class="fa-solid fa-compass"></i> メニュー
+            </span>
+            <button id="closeSidebarBtn" class="w-8 h-8 rounded-full hover:bg-emerald-100 text-slate-500 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <nav class="p-4 flex-1">
+            <ul class="space-y-2">
+                <li>
+                    <button id="menuUserInfo" class="w-full flex items-center gap-3 px-4 py-3 text-left font-medium text-slate-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all">
+                        <i class="fa-solid fa-user-check text-emerald-500 w-5"></i> あなたの情報
+                    </button>
+                </li>
+                <li>
+                    <button id="menuUserMgmt" class="w-full flex items-center gap-3 px-4 py-3 text-left font-medium text-slate-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all">
+                        <i class="fa-solid fa-users-gear text-emerald-500 w-5"></i> ユーザー管理
+                    </button>
+                </li>
+                <li>
+                    <button id="menuTutorial" class="w-full flex items-center gap-3 px-4 py-3 text-left font-medium text-slate-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all">
+                        <i class="fa-solid fa-circle-question text-emerald-500 w-5"></i> 利用方法
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        <div class="p-4 border-t text-xs text-center text-slate-400">
+            NutriCare v1.0.0
+        </div>
+    </aside>
+
+    <!-- メインコンテンツ領域 -->
+    <main class="max-w-md mx-auto px-4 py-6 w-full flex-1 flex flex-col gap-6">
+        
+        <!-- 現在のユーザー表示バッジ -->
+        <div class="flex justify-between items-center bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-100 text-xs text-slate-600">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span>現在のユーザー: <strong id="currentUserName" class="text-slate-800 font-bold">---</strong></span>
+            </div>
+            <span id="currentUserDetail" class="text-slate-400">(--歳 / --)</span>
+        </div>
+
+        <!-- 料理検索フォーム -->
+        <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-3">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-utensils text-emerald-500"></i> 料理検索
+            </label>
+            <div class="flex gap-2">
+                <input type="text" id="dishInput" placeholder="例: カツカレー、サーモン握り..." class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <button id="searchBtn" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white px-5 rounded-xl text-sm font-bold flex items-center justify-center transition-all shadow-md shadow-emerald-100">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 警告表示（検索結果なし） -->
+        <div id="alertBox" class="hidden bg-amber-50 border-l-4 border-amber-400 p-4 rounded-xl shadow-sm">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl"></i>
+                <p class="text-sm font-bold text-amber-800">見つかりませんでした</p>
+            </div>
+            <p class="text-xs text-amber-700 mt-1 pl-8">入力された料理が存在しないか、栄養データを判定できませんでした。別の料理名でお試しください。</p>
+        </div>
+
+        <!-- ローディング表示 -->
+        <div id="loadingBox" class="hidden flex-col items-center justify-center py-10 gap-3">
+            <div class="w-10 h-10 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
+            <p class="text-xs font-medium text-slate-500 animate-pulse">Gemini AIが栄養素を解析中...</p>
+        </div>
+
+        <!-- 検索結果（栄養素テーブル） -->
+        <section id="resultSection" class="hidden bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
+            <div class="flex justify-between items-end border-b border-slate-100 pb-3">
+                <div>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">1人前の推定栄養素</span>
+                    <h2 id="resultDishTitle" class="text-xl font-bold text-slate-800 mt-1">---</h2>
+                </div>
+                <span class="text-xs text-slate-400">（除外: 含有量0）</span>
+            </div>
+
+            <!-- テーブルコンテナ（高さ指定 + 縦スクロール） -->
+            <div class="h-80 overflow-y-auto custom-scrollbar border border-slate-100 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-100 z-10">
+                        <tr>
+                            <th class="p-3 font-medium">項目名</th>
+                            <th class="p-3 font-medium">含有量</th>
+                            <th class="p-3 font-medium">推奨量/目安</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nutritionTableBody" class="divide-y divide-slate-100 text-slate-700">
+                        <!-- JSで動的に挿入 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="py-4 text-center text-[10px] text-slate-400 border-t border-slate-100 bg-white">
+        © 2026 NutriCare - All rights reserved.
+    </footer>
+
+    <!-- モーダル: ユーザー登録 -->
+    <div id="registerModal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl flex flex-col gap-4 border border-slate-100">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800">ユーザー登録</h3>
+                <p class="text-xs text-slate-400 mt-0.5">あなたの情報を入力してください</p>
+            </div>
+
+            <form id="registerForm" class="flex flex-col gap-3">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 mb-1 block">ユーザー名（半角英数字）</label>
+                    <input type="text" id="regName" required pattern="[a-zA-Z0-9]+" placeholder="例: taro123" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 mb-1 block">年齢（半角数字）</label>
+                    <input type="number" id="regAge" required min="1" max="120" placeholder="例: 20" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 mb-1 block">性別</label>
+                    <div class="flex gap-4 pt-1">
+                        <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                            <input type="radio" name="regGender" value="男性" checked class="accent-emerald-500"> 男性
+                        </label>
+                        <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                            <input type="radio" name="regGender" value="女性" class="accent-emerald-500"> 女性
+                        </label>
+                    </div>
+                </div>
+
+                <p id="regError" class="text-[10px] text-red-500 hidden text-center">正しい値を入力してください</p>
+
+                <button type="submit" class="mt-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md shadow-emerald-100 transition-all">
+                    登録して進む
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- モーダル: チュートリアル -->
+    <div id="tutorialModal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl flex flex-col gap-4 relative border border-slate-100">
+            <button id="closeTutorialBtn" class="absolute top-4 right-4 w-7 h-7 bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <div class="text-center mt-2">
+                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">使い方ガイド</span>
+            </div>
+
+            <div id="slideContainer" class="min-h-[160px] flex flex-col items-center justify-center text-center p-2"></div>
+
+            <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <button id="prevSlideBtn" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 text-xs">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div id="slideIndicators" class="flex gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-slate-200"></span>
+                    <span class="w-2 h-2 rounded-full bg-slate-200"></span>
+                </div>
+                <button id="nextSlideBtn" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 text-xs">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: あなたの情報 -->
+    <div id="userInfoModal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl flex flex-col gap-4 relative border border-slate-100">
+            <button id="closeUserInfoBtn" class="absolute top-4 right-4 w-7 h-7 bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i class="fa-solid fa-id-card text-emerald-500"></i> あなたの情報
+            </h3>
+
+            <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 flex flex-col gap-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-500">ユーザー名</span>
+                    <strong id="infoName" class="text-slate-800">---</strong>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-500">年齢 / 性別</span>
+                    <strong id="infoDetail" class="text-slate-800">---</strong>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i> 検索履歴
+                </h4>
+                <ul id="historyList" class="max-h-36 overflow-y-auto custom-scrollbar space-y-1.5 text-xs text-slate-600"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: ユーザー管理 -->
+    <div id="userMgmtModal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl flex flex-col gap-4 relative border border-slate-100">
+            <button id="closeUserMgmtBtn" class="absolute top-4 right-4 w-7 h-7 bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i class="fa-solid fa-users-gear text-emerald-500"></i> ユーザー管理
+            </h3>
+
+            <div id="userMgmtList" class="max-h-40 overflow-y-auto custom-scrollbar space-y-2"></div>
+
+            <button id="addNewUserBtn" class="w-full py-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                <i class="fa-solid fa-plus"></i> 新しいユーザーを追加
+            </button>
+        </div>
+    </div>
+
+    <!-- フロントエンド JS ロジック -->
+    <script>
+        // APIキーはサーバー側(.env)で管理します。ブラウザには含めません。
+        const API_ENDPOINT = "/api/analyze";
+
+        const NUTRIENT_LIST = [
+            "エネルギー", "タンパク質", "脂質", "飽和脂肪酸", "n-6系脂肪酸", "n-3系脂肪酸", 
+            "炭水化物", "食物繊維", "ビタミンA", "ビタミンD", "ビタミンE", "ビタミンK", 
+            "ビタミンB1", "ビタミンB2", "ビタミンB6", "ビタミンB12", "ナイアシン", "葉酸", 
+            "パントテン酸", "ビオチン", "ビタミンC", "ナトリウム（食塩相当量）", "カリウム", 
+            "カルシウム", "マグネシウム", "リン", "鉄", "亜鉛", "銅", "マンガン", 
+            "ヨウ素", "セレン", "クロム", "モリブデン"
+        ];
+
+        const tutorialSlides = [
+            {
+                icon: "fa-solid fa-magnifying-glass",
+                title: "1. 料理名を検索",
+                desc: "気になった料理の名前を入力欄に入れて検索ボタンを押しましょう。"
+            },
+            {
+                icon: "fa-solid fa-microscope",
+                title: "2. AIが自動解析",
+                desc: "Gemini AIが最大34項目の栄養素を完全自動で瞬時に判定します。"
+            },
+            {
+                icon: "fa-solid fa-chart-pie",
+                title: "3. 推奨量と比較",
+                desc: "あなたの年齢・性別に合わせた1日あたりの推奨量と見比べることができます。"
+            }
+        ];
+
+        let currentSlideIdx = 0;
+        let appData = {
+            users: [],
+            currentUserId: null,
+            history: []
+        };
+
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+        const registerModal = document.getElementById('registerModal');
+        const registerForm = document.getElementById('registerForm');
+        const tutorialModal = document.getElementById('tutorialModal');
+        const closeTutorialBtn = document.getElementById('closeTutorialBtn');
+        const slideContainer = document.getElementById('slideContainer');
+        const prevSlideBtn = document.getElementById('prevSlideBtn');
+        const nextSlideBtn = document.getElementById('nextSlideBtn');
+
+        const userInfoModal = document.getElementById('userInfoModal');
+        const closeUserInfoBtn = document.getElementById('closeUserInfoBtn');
+        const userMgmtModal = document.getElementById('userMgmtModal');
+        const closeUserMgmtBtn = document.getElementById('closeUserMgmtBtn');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStorage();
+            if (!appData.users || appData.users.length === 0) {
+                registerModal.classList.remove('hidden');
+            } else {
+                updateUI();
+            }
+        });
+
+        function loadStorage() {
+            const data = localStorage.getItem('nutricare_data');
+            if (data) {
+                appData = JSON.parse(data);
+            }
+        }
+        function saveStorage() {
+            localStorage.setItem('nutricare_data', JSON.stringify(appData));
+        }
+
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const age = parseInt(document.getElementById('regAge').value);
+            const gender = document.querySelector('input[name="regGender"]:checked').value;
+            const regError = document.getElementById('regError');
+
+            if (!/^[a-zA-Z0-9]+$/.test(name)) {
+                regError.textContent = "ユーザー名は英数字のみで入力してください";
+                regError.classList.remove('hidden');
+                return;
+            }
+
+            const newUser = {
+                id: 'u_' + Date.now(),
+                name: name,
+                age: age,
+                gender: gender
+            };
+
+            if (!appData.users) appData.users = [];
+            appData.users.push(newUser);
+            appData.currentUserId = newUser.id;
+            saveStorage();
+
+            registerModal.classList.add('hidden');
+            regError.classList.add('hidden');
+            registerForm.reset();
+
+            showTutorial();
+            updateUI();
+        });
+
+        function updateUI() {
+            const currentUser = appData.users.find(u => u.id === appData.currentUserId);
+            if (currentUser) {
+                document.getElementById('currentUserName').textContent = currentUser.name;
+                document.getElementById('currentUserDetail').textContent = `(${currentUser.age}歳 / ${currentUser.gender})`;
+            }
+        }
+
+        function toggleSidebar(open) {
+            if (open) {
+                sidebarOverlay.classList.remove('hidden');
+                setTimeout(() => sidebar.classList.remove('translate-x-full'), 10);
+            } else {
+                sidebar.classList.add('translate-x-full');
+                setTimeout(() => sidebarOverlay.classList.add('hidden'), 300);
+            }
+        }
+        hamburgerBtn.addEventListener('click', () => toggleSidebar(true));
+        closeSidebarBtn.addEventListener('click', () => toggleSidebar(false));
+        sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
+
+        document.getElementById('menuUserInfo').addEventListener('click', () => { toggleSidebar(false); openUserInfo(); });
+        document.getElementById('menuUserMgmt').addEventListener('click', () => { toggleSidebar(false); openUserMgmt(); });
+        document.getElementById('menuTutorial').addEventListener('click', () => { toggleSidebar(false); showTutorial(); });
+
+        function showTutorial() {
+            currentSlideIdx = 0;
+            renderSlide();
+            tutorialModal.classList.remove('hidden');
+        }
+        function renderSlide() {
+            const slide = tutorialSlides[currentSlideIdx];
+            slideContainer.innerHTML = `
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-3 text-xl">
+                    <i class="${slide.icon}"></i>
+                </div>
+                <h4 class="font-bold text-slate-800 text-sm mb-1">${slide.title}</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">${slide.desc}</p>
+            `;
+            const dots = document.getElementById('slideIndicators').children;
+            for (let i = 0; i < dots.length; i++) {
+                dots[i].className = i === currentSlideIdx ? "w-2 h-2 rounded-full bg-emerald-500" : "w-2 h-2 rounded-full bg-slate-200";
+            }
+        }
+        prevSlideBtn.addEventListener('click', () => { if (currentSlideIdx > 0) { currentSlideIdx--; renderSlide(); } });
+        nextSlideBtn.addEventListener('click', () => { if (currentSlideIdx < tutorialSlides.length - 1) { currentSlideIdx++; renderSlide(); } });
+        closeTutorialBtn.addEventListener('click', () => tutorialModal.classList.add('hidden'));
+
+        function openUserInfo() {
+            const currentUser = appData.users.find(u => u.id === appData.currentUserId);
+            if (!currentUser) return;
+            document.getElementById('infoName').textContent = currentUser.name;
+            document.getElementById('infoDetail').textContent = `${currentUser.age}歳 / ${currentUser.gender}`;
+
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            const userHistories = (appData.history || []).filter(h => h.userId === currentUser.id);
+            if (userHistories.length === 0) {
+                historyList.innerHTML = '<li class="text-slate-400 text-center py-2">検索履歴はありません</li>';
+            } else {
+                userHistories.slice().reverse().forEach(h => {
+                    const li = document.createElement('li');
+                    li.className = "bg-slate-50 p-2 rounded-xl flex justify-between items-center";
+                    li.innerHTML = `<span class="font-medium text-slate-700">${h.dish}</span><span class="text-[10px] text-slate-400">${h.date}</span>`;
+                    historyList.appendChild(li);
+                });
+            }
+            userInfoModal.classList.remove('hidden');
+        }
+        closeUserInfoBtn.addEventListener('click', () => userInfoModal.classList.add('hidden'));
+
+        function openUserMgmt() {
+            renderUserMgmtList();
+            userMgmtModal.classList.remove('hidden');
+        }
+        function renderUserMgmtList() {
+            const container = document.getElementById('userMgmtList');
+            container.innerHTML = '';
+            appData.users.forEach(user => {
+                const isCurrent = user.id === appData.currentUserId;
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-2xl border flex justify-between items-center transition-all ${isCurrent ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-100'}`;
+                div.innerHTML = `
+                    <div class="cursor-pointer flex-1" onclick="switchUser('${user.id}')">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-xs text-slate-800">${user.name}</span>
+                            ${isCurrent ? '<span class="text-[9px] bg-emerald-500 text-white px-1.5 py-0.2 rounded-full">選択中</span>' : ''}
+                        </div>
+                        <p class="text-[10px] text-slate-400">${user.age}歳 / ${user.gender}</p>
+                    </div>
+                    <button onclick="deleteUser('${user.id}')" class="w-7 h-7 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        closeUserMgmtBtn.addEventListener('click', () => userMgmtModal.classList.add('hidden'));
+
+        window.switchUser = function(userId) {
+            appData.currentUserId = userId;
+            saveStorage();
+            updateUI();
+            renderUserMgmtList();
+        }
+
+        window.deleteUser = function(userId) {
+            if (appData.users.length <= 1) {
+                alert("最後の1人のユーザーは削除できません。");
+                return;
+            }
+            appData.users = appData.users.filter(u => u.id !== userId);
+            if (appData.currentUserId === userId) appData.currentUserId = appData.users[0].id;
+            saveStorage();
+            updateUI();
+            renderUserMgmtList();
+        }
+
+        document.getElementById('addNewUserBtn').addEventListener('click', () => {
+            userMgmtModal.classList.add('hidden');
+            registerModal.classList.remove('hidden');
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+        document.getElementById('dishInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+
+        async function performSearch() {
+            const dish = document.getElementById('dishInput').value.trim();
+            if (!dish) return;
+            const currentUser = appData.users.find(u => u.id === appData.currentUserId);
+            if (!currentUser) return;
+
+            document.getElementById('alertBox').classList.add('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('loadingBox').classList.remove('hidden');
+
+            try {
+                const res = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dish: dish, age: currentUser.age, gender: currentUser.gender })
+                });
+
+                const resData = await res.json();
+                document.getElementById('loadingBox').classList.add('hidden');
+
+                if (!resData.candidates || !resData.candidates[0]) {
+                    document.getElementById('alertBox').classList.remove('hidden');
+                    return;
+                }
+
+                let textResp = resData.candidates[0].content.parts[0].text;
+                textResp = textResp.replace(/```json/g, '').replace(/```/g, '').trim();
+                const parsed = JSON.parse(textResp);
+
+                if (!parsed.exists) {
+                    document.getElementById('alertBox').classList.remove('hidden');
+                } else {
+                    if (!appData.history) appData.history = [];
+                    const now = new Date();
+                    const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+                    appData.history.push({ userId: currentUser.id, dish: dish, date: dateStr });
+                    saveStorage();
+
+                    renderNutritionTable(dish, parsed.nutrients);
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loadingBox').classList.add('hidden');
+                document.getElementById('alertBox').classList.remove('hidden');
+            }
+        }
+
+        function renderNutritionTable(dishName, nutrients) {
+            document.getElementById('resultDishTitle').textContent = dishName;
+            const tbody = document.getElementById('nutritionTableBody');
+            tbody.innerHTML = '';
+
+            let count = 0;
+            nutrients.forEach(item => {
+                const valNum = parseFloat(item.amount);
+                if (isNaN(valNum) || valNum <= 0) return;
+
+                count++;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-3 font-medium text-slate-800">${item.name}</td>
+                    <td class="p-3 font-bold text-emerald-600">${item.amount}</td>
+                    <td class="p-3 text-slate-500 text-[11px]">${item.recommended}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (count === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">表示可能な栄養素データがありませんでした</td></tr>';
+            }
+
+            document.getElementById('resultSection').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
