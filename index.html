@@ -304,8 +304,9 @@
     <!-- フロントエンド JS ロジック -->
     <script>
         // APIキーはサーバー側(.env)で管理します。ブラウザには含めません。
-        const API_ENDPOINT = "/api/analyze";
-
+        const API_ENDPOINT = location.hostname.endsWith("github.io")
+            ? "https://nutricare-api.ri25117k.workers.dev/"
+            : "/api/analyze";
         const NUTRIENT_LIST = [
             "エネルギー", "タンパク質", "脂質", "飽和脂肪酸", "n-6系脂肪酸", "n-3系脂肪酸", 
             "炭水化物", "食物繊維", "ビタミンA", "ビタミンD", "ビタミンE", "ビタミンK", 
