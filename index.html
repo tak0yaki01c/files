@@ -43,27 +43,25 @@
             border-radius: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #059669;
+            background: #f89625;
         }
         .modal-bg {
             background-color: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(4px);
         }
     </style>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
-
     <!-- ヘッダー -->
-        <div class="flex items-center gap-2">
-            <img src="logo.png" alt="EA.SyS ロゴ" class="h-9 w-auto">
-            <span class="text-[10px] font-medium text-black-600 tracking-wider">KWS班 ハッカソン課題</span>
-        </div>
-            
-            <button id="hamburgerBtn" class="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-700 transition-colors focus:outline-none">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
-        </div>
-    </header>
+<header class="bg-white shadow-sm sticky top-0 z-20 border-b border-emerald-100">
+    <div class="max-w-md mx-auto px-4 py-3 relative flex items-center justify-center">
+            <!-- 中央：ロゴ -->
+        <img src="logo.png" alt="EA.SyS ロゴ" class="h-9 w-auto max-w-[60%] object-contain">
+
+            <!-- 右端：ハンバーガーボタン -->
+        <button id="hamburgerBtn" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-700 transition-colors focus:outline-none">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+    </div>
+</header>
 
     <!-- サイドバー (ハンバーガーメニュー) -->
     <div id="sidebarOverlay" class="fixed inset-0 modal-bg z-40 hidden transition-opacity duration-300"></div>
