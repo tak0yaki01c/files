@@ -45,17 +45,23 @@ def build_prompt(dish, age, gender):
 
 【タスク】
 1. まず「{dish}」が実在する料理・食品かどうか判定してください。架空の言葉や食べ物でない場合は exists: false としてください。
-2. 実在する場合、1人前に含まれる以下の34項目の栄養素を推定計算してください。
-3. 日本人の食事摂取基準に基づき、{age}歳・{gender}における各栄養素の1日あたりの「推奨量/目安量/目標量」を算出して添えてください。
-4. 含有量がほぼ0の項目は amount: "0g" のように0で回答してください。
+2. 実在する場合、1人前に使われる主な材料と使用量を推定してください（水・調味料・油も含め、多くても15品目まで。量は g、ml、個などで具体的に）。
+3. 以下の34項目の栄養素は、必ず手順2で挙げた材料と使用量から積み上げて計算してください。材料の量と栄養素の値が矛盾しないようにすることが最重要です。
+4. 日本人の食事摂取基準に基づき、{age}歳・{gender}における各栄養素の1日あたりの「推奨量/目安量/目標量」を算出して添えてください。
+5. 含有量がほぼ0の項目は amount: "0g" のように0で回答してください。
 
 対象の34項目:
 {', '.join(NUTRIENT_LIST)}
 
 【出力フォーマット】
 以下の純粋なJSONのみを出力してください。Markdown等の装飾テキストは含めないでください。
+ingredients は nutrients より先に出力してください。exists が false の場合、ingredients と nutrients は空配列にしてください。
 {{
   "exists": true,
+  "ingredients": [
+    {{ "name": "にんじん", "amount": "50g" }},
+    {{ "name": "水", "amount": "200ml" }}
+  ],
   "nutrients": [
     {{ "name": "エネルギー", "amount": "650kcal", "recommended": "2300kcal/日" }}
   ]
@@ -96,7 +102,11 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, TypeError, json.JSONDecodeError):
             return self._send(400, b'{"error":"invalid request"}')
 
-        payload = {"contents": [{"parts": [{"text": build_prompt(dish, age, gender)}]}]}
+        payload = {
+            "contents": [{"parts": [{"text": build_prompt(dish, age, gender)}]}],
+            # JSON形式で返すよう指定（材料と栄養素を同時に安定して取得するため）
+            "generationConfig": {"responseMimeType": "application/json"},
+        }
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
         gemini_req = urllib.request.Request(
             url,

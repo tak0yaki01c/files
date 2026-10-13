@@ -50,6 +50,8 @@
             backdrop-filter: blur(4px);
         }
     </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen selection:bg-emerald-500 selection:text-white flex flex-col justify-between">
     <!-- ヘッダー -->
 <header class="bg-white shadow-sm sticky top-0 z-20 border-b border-emerald-100">
     <div class="max-w-md mx-auto px-4 py-3 relative flex items-center justify-center">
@@ -143,13 +145,18 @@
             <div class="flex justify-between items-end border-b border-slate-100 pb-3">
                 <div>
                     <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">1人前の推定栄養素</span>
-                    <h2 id="resultDishTitle" class="text-xl font-bold text-slate-800 mt-1">---</h2>
+                    <div class="flex items-center gap-2 mt-1">
+                        <h2 id="resultDishTitle" class="text-xl font-bold text-slate-800">---</h2>
+                        <button id="ingredientBtn" class="text-[11px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-full flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-carrot"></i> 使用材料
+                        </button>
+                    </div>
                 </div>
                 <span class="text-xs text-slate-400">（除外: 含有量0）</span>
             </div>
 
             <!-- テーブルコンテナ（高さ指定 + 縦スクロール） -->
-            <div class="overflow-hidden border border-slate-100 rounded-2xl"></div>
+            <div class="overflow-hidden border border-slate-100 rounded-2xl">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-100 z-10">
                         <tr>
@@ -273,6 +280,23 @@
         </div>
     </div>
 
+    <!-- モーダル: 使用材料 -->
+    <div id="ingredientModal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl flex flex-col gap-4 relative border border-slate-100">
+            <button id="closeIngredientBtn" class="absolute top-4 right-4 w-7 h-7 bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <i class="fa-solid fa-carrot text-emerald-500"></i> <span id="ingredientTitle">使用材料</span>
+            </h3>
+
+            <ul id="ingredientList" class="max-h-[50vh] overflow-y-auto custom-scrollbar divide-y divide-slate-100 text-sm"></ul>
+
+            <p class="text-[10px] text-slate-400 leading-relaxed">※1人前の推定量です。栄養素はこの材料の量をもとにAIが算出しています。</p>
+        </div>
+    </div>
+
     <!-- モーダル: ユーザー管理 -->
     <div id="userMgmtModal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl flex flex-col gap-4 relative border border-slate-100">
@@ -329,7 +353,8 @@
         let appData = {
             users: [],
             currentUserId: null,
-            history: []
+            history: [],
+            cache: {}
         };
 
         const hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -363,6 +388,7 @@
             const data = localStorage.getItem('nutricare_data');
             if (data) {
                 appData = JSON.parse(data);
+                if (!appData.cache) appData.cache = {};
             }
         }
         function saveStorage() {
@@ -464,8 +490,13 @@
             } else {
                 userHistories.slice().reverse().forEach(h => {
                     const li = document.createElement('li');
-                    li.className = "bg-slate-50 p-2 rounded-xl flex justify-between items-center";
+                    li.className = "bg-slate-50 hover:bg-slate-100 cursor-pointer p-2 rounded-xl flex justify-between items-center";
                     li.innerHTML = `<span class="font-medium text-slate-700">${h.dish}</span><span class="text-[10px] text-slate-400">${h.date}</span>`;
+                    li.addEventListener('click', () => {
+                        userInfoModal.classList.add('hidden');
+                        document.getElementById('dishInput').value = h.dish;
+                        performSearch();
+                    });
                     historyList.appendChild(li);
                 });
             }
@@ -528,6 +559,53 @@
         document.getElementById('searchBtn').addEventListener('click', performSearch);
         document.getElementById('dishInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
 
+        // ===== 使用材料モーダル =====
+        let currentIngredients = [];
+        const ingredientModal = document.getElementById('ingredientModal');
+
+        document.getElementById('ingredientBtn').addEventListener('click', () => {
+            const list = document.getElementById('ingredientList');
+            list.innerHTML = '';
+            document.getElementById('ingredientTitle').textContent =
+                document.getElementById('resultDishTitle').textContent + ' の使用材料';
+
+            if (currentIngredients.length === 0) {
+                list.innerHTML = '<li class="py-3 text-center text-slate-400 text-xs">材料データがありません</li>';
+            } else {
+                currentIngredients.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center py-2';
+                    const name = document.createElement('span');
+                    name.className = 'text-slate-700';
+                    name.textContent = item.name;
+                    const amount = document.createElement('strong');
+                    amount.className = 'text-emerald-600';
+                    amount.textContent = item.amount;
+                    li.appendChild(name);
+                    li.appendChild(amount);
+                    list.appendChild(li);
+                });
+            }
+            ingredientModal.classList.remove('hidden');
+        });
+        document.getElementById('closeIngredientBtn').addEventListener('click', () => ingredientModal.classList.add('hidden'));
+
+        // ===== 検索結果の保存（履歴・キャッシュ） =====
+        function cacheKey(dish, user) {
+            return dish.normalize('NFKC').toLowerCase().replace(/\s+/g, '') + '|' + user.age + '|' + user.gender;
+        }
+        function trimCache() {
+            const keys = Object.keys(appData.cache);
+            keys.slice(0, Math.max(0, keys.length - 100)).forEach(k => delete appData.cache[k]); // 最大100件
+        }
+        function addHistory(userId, dish) {
+            if (!appData.history) appData.history = [];
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            appData.history.push({ userId: userId, dish: dish, date: dateStr });
+            saveStorage();
+        }
+
         async function performSearch() {
             const dish = document.getElementById('dishInput').value.trim();
             if (!dish) return;
@@ -536,6 +614,16 @@
 
             document.getElementById('alertBox').classList.add('hidden');
             document.getElementById('resultSection').classList.add('hidden');
+
+            // 2回目以降は、保存済みの結果をそのまま表示（同じ料理・年齢・性別なら同じ値）
+            const key = cacheKey(dish, currentUser);
+            const cached = appData.cache[key];
+            if (cached) {
+                addHistory(currentUser.id, dish);
+                renderNutritionTable(dish, cached.nutrients, cached.ingredients);
+                return;
+            }
+
             document.getElementById('loadingBox').classList.remove('hidden');
 
             try {
@@ -560,13 +648,11 @@
                 if (!parsed.exists) {
                     document.getElementById('alertBox').classList.remove('hidden');
                 } else {
-                    if (!appData.history) appData.history = [];
-                    const now = new Date();
-                    const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-                    appData.history.push({ userId: currentUser.id, dish: dish, date: dateStr });
-                    saveStorage();
+                    appData.cache[key] = { ingredients: parsed.ingredients || [], nutrients: parsed.nutrients };
+                    trimCache();
+                    addHistory(currentUser.id, dish);
 
-                    renderNutritionTable(dish, parsed.nutrients);
+                    renderNutritionTable(dish, parsed.nutrients, parsed.ingredients);
                 }
             } catch (err) {
                 console.error(err);
@@ -575,7 +661,8 @@
             }
         }
 
-        function renderNutritionTable(dishName, nutrients) {
+        function renderNutritionTable(dishName, nutrients, ingredients) {
+            currentIngredients = Array.isArray(ingredients) ? ingredients : [];
             document.getElementById('resultDishTitle').textContent = dishName;
             const tbody = document.getElementById('nutritionTableBody');
             tbody.innerHTML = '';
