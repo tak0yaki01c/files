@@ -47,11 +47,8 @@
             backdrop-filter: blur(4px);
         }
 
-        body{background:linear-gradient(160deg,#fff7ed 0%,#fffbeb 50%,#fef3c7 100%) fixed}
-        body::before{content:'';position:fixed;inset:0;z-index:-1;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><g fill='%23fdba74' opacity='.55'><circle cx='42' cy='52' r='19'/><circle cx='64' cy='52' r='19'/><rect x='51' y='22' width='5' height='14' rx='2'/><ellipse cx='60' cy='178' rx='19' ry='25'/><ellipse cx='170' cy='175' rx='10' ry='34' transform='rotate(45 170 175)'/></g><g fill='%23fde047' opacity='.6'><ellipse cx='160' cy='60' rx='30' ry='16'/><path d='M186 60L214 42V78Z'/><circle cx='196' cy='149' r='8'/><ellipse cx='72' cy='36' rx='10' ry='5' transform='rotate(-30 72 36)'/><path d='M120 108L146 150H94Z' stroke='%23fde047' stroke-width='10' stroke-linejoin='round'/></g></svg>") 0 0/240px 240px;animation:drift 80s linear infinite}
-        @keyframes drift{to{background-position:240px 240px}}
-        @media (prefers-reduced-motion:reduce){body::before{animation:none}}
-        header{background:rgba(220, 188, 147, 0.9)!important;backdrop-filter:blur(20px) saturate(1.8);border-color:rgba(160,120,80,.35)!important}
+        body{background:#f7e0d5 url('background.png') center top / cover no-repeat fixed}
+        header{background:rgba(210,180,140,.9)!important;backdrop-filter:blur(20px) saturate(1.8);border-color:rgba(160,120,80,.35)!important}
         main section,main>div.bg-white,footer{background:rgba(255,255,255,.78)!important;backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.8)!important;box-shadow:0 10px 30px rgba(249,115,22,.14)}
         footer{background:rgba(255,247,237,.8)!important;box-shadow:none}
         #searchBtn,.seg-btn.active{background:linear-gradient(135deg,#fb923c,#fbbf24)!important}
