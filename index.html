@@ -53,9 +53,10 @@
         footer{background:rgba(255,247,237,.8)!important;box-shadow:none}
         #searchBtn,.seg-btn.active{background:linear-gradient(135deg,#fb923c,#fbbf24)!important}
         table thead{background:#ffedd5!important;color:#9a3412!important}
-        .seg{display:flex;gap:4px;padding:4px;border-radius:18px;background:rgba(255,237,213,.85);backdrop-filter:blur(12px)}
-        .seg-btn{flex:1;padding:.65rem .5rem;border-radius:14px;font-weight:900;font-size:.8rem;color:#9a3412;transition:all .25s}
-        .seg-btn.active{color:#fff;box-shadow:0 6px 16px rgba(249,115,22,.4)}
+        .seg{display:flex;gap:4px;padding:4px;border-radius:18px;background:#fff;border:1px solid #000;backdrop-filter:blur(12px)}
+        .seg-btn{flex:1;padding:.65rem .5rem;border-radius:14px;font-weight:900;font-size:.8rem;color:#000;background:#fff;transition:all .25s}
+        .seg-btn.active{color:#fff;box-shadow:none}
+        .seg-btn.active{background:#000!important}
         .chip{flex:none;padding:.4rem .9rem;border-radius:999px;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.85);color:#9a3412;border:1px solid #fed7aa}
         .chip.on{background:#f97316;color:#fff;border-color:#f97316}
         .gcard{display:flex;gap:.85rem;padding:1rem;border-radius:24px;background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(249,115,22,.12)}
@@ -124,8 +125,8 @@
         
         <!-- タブ切替 -->
         <div class="seg" role="tablist">
-            <button class="seg-btn active" data-tab="search" role="tab"><i class="fa-solid fa-magnifying-glass"></i> 料理検索</button>
-            <button class="seg-btn" data-tab="guide" role="tab"><i class="fa-solid fa-book-open"></i> 栄養素一覧</button>
+            <button class="seg-btn active" data-tab="search" role="tab">料理検索</button>
+            <button class="seg-btn" data-tab="guide" role="tab">栄養素一覧</button>
         </div>
 
         <div id="tabSearch" class="flex flex-col gap-6">
@@ -135,7 +136,7 @@
                 <i class="fa-solid fa-utensils text-emerald-500"></i> 料理検索
             </label>
             <div class="flex gap-2">
-                <input type="text" id="dishInput" placeholder="料理名を入力してください" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-none text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <input type="text" id="dishInput" style="font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" placeholder="料理名を入力してください" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-none text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
                 <button id="searchBtn" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white px-5 rounded-none text-sm font-bold flex items-center justify-center transition-all shadow-md shadow-emerald-100">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
