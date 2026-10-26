@@ -3,28 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EA.SYS_2I-kws班</title>
+    <title>EASYS_2I-kws班</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter / Noto Sans JP -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         emerald: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
+                            50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa',
+                            500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412',
                         }
                     },
                     fontFamily: {
-                        sans: ['Noto Sans JP', 'sans-serif'],
+                        sans: ['Zen Maru Gothic', 'Noto Sans JP', 'sans-serif'],
                     }
                 }
             }
@@ -39,24 +36,49 @@
             border-radius: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #10b981;
+            background: #fb923c;
             border-radius: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #32fba7;
+            background: #f59e0b;
         }
         .modal-bg {
             background-color: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(4px);
         }
+
+        body{background:linear-gradient(160deg,#fff7ed 0%,#fffbeb 50%,#fef3c7 100%) fixed}
+        body::before{content:'';position:fixed;inset:0;z-index:-1;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><g fill='%23fdba74' opacity='.55'><circle cx='42' cy='52' r='19'/><circle cx='64' cy='52' r='19'/><rect x='51' y='22' width='5' height='14' rx='2'/><ellipse cx='60' cy='178' rx='19' ry='25'/><ellipse cx='170' cy='175' rx='10' ry='34' transform='rotate(45 170 175)'/></g><g fill='%23fde047' opacity='.6'><ellipse cx='160' cy='60' rx='30' ry='16'/><path d='M186 60L214 42V78Z'/><circle cx='196' cy='149' r='8'/><ellipse cx='72' cy='36' rx='10' ry='5' transform='rotate(-30 72 36)'/><path d='M120 108L146 150H94Z' stroke='%23fde047' stroke-width='10' stroke-linejoin='round'/></g></svg>") 0 0/240px 240px;animation:drift 80s linear infinite}
+        @keyframes drift{to{background-position:240px 240px}}
+        @media (prefers-reduced-motion:reduce){body::before{animation:none}}
+        header{background:rgba(220, 188, 147, 0.9)!important;backdrop-filter:blur(20px) saturate(1.8);border-color:rgba(160,120,80,.35)!important}
+        main section,main>div.bg-white,footer{background:rgba(255,255,255,.78)!important;backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.8)!important;box-shadow:0 10px 30px rgba(249,115,22,.14)}
+        footer{background:rgba(255,247,237,.8)!important;box-shadow:none}
+        #searchBtn,.seg-btn.active{background:linear-gradient(135deg,#fb923c,#fbbf24)!important}
+        table thead{background:#ffedd5!important;color:#9a3412!important}
+        .seg{display:flex;gap:4px;padding:4px;border-radius:18px;background:rgba(255,237,213,.85);backdrop-filter:blur(12px)}
+        .seg-btn{flex:1;padding:.65rem .5rem;border-radius:14px;font-weight:900;font-size:.8rem;color:#9a3412;transition:all .25s}
+        .seg-btn.active{color:#fff;box-shadow:0 6px 16px rgba(249,115,22,.4)}
+        .chip{flex:none;padding:.4rem .9rem;border-radius:999px;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.85);color:#9a3412;border:1px solid #fed7aa}
+        .chip.on{background:#f97316;color:#fff;border-color:#f97316}
+        .gcard{display:flex;gap:.85rem;padding:1rem;border-radius:24px;background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(249,115,22,.12)}
+        .gicon{flex:none;width:3rem;height:3rem;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:linear-gradient(135deg,#ffedd5,#fef08a)}
+        .food{display:inline-block;padding:.15rem .6rem;border-radius:999px;font-size:.68rem;font-weight:700;background:#fef3c7;color:#92400e}
+        .pop{animation:pop .3s ease}@keyframes pop{from{opacity:0;transform:scale(.96)}}
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen selection:bg-emerald-500 selection:text-white flex flex-col justify-between">
+<body class="text-slate-800 font-sans min-h-screen selection:bg-emerald-500 selection:text-white flex flex-col justify-between">
     <!-- ヘッダー -->
 <header class="bg-white shadow-sm sticky top-0 z-20 border-b border-emerald-100">
     <div class="max-w-md mx-auto px-4 py-3 relative flex items-center justify-center">
             <!-- 中央：ロゴ -->
-        <img src="logo.png" alt="EA.SyS ロゴ" class="h-9 w-auto max-w-[60%] object-contain">
+        <img src="logo.png" alt="EA.SyS ロゴ" class="h-9 w-auto max-w-[40%] object-contain">
+
+            <!-- ハンバーガーの左：ユーザー情報（小さく表示） -->
+        <div class="absolute right-[3.75rem] top-1/2 -translate-y-1/2 text-right leading-tight text-slate-700 max-w-[6rem]">
+            <div id="currentUserName" class="text-[11px] font-bold truncate">---</div>
+            <div id="currentUserDetail" class="text-[10px] opacity-80 whitespace-nowrap">(--歳 / --)</div>
+        </div>
 
             <!-- 右端：ハンバーガーボタン -->
         <button id="hamburgerBtn" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-700 transition-colors focus:outline-none">
@@ -103,23 +125,21 @@
     <!-- メインコンテンツ領域 -->
     <main class="max-w-md mx-auto px-4 py-6 w-full flex-1 flex flex-col gap-6">
         
-        <!-- 現在のユーザー表示バッジ -->
-        <div class="flex justify-between items-center bg-white px-4 py-2.5 rounded-2xl shadow-sm border border-slate-100 text-xs text-slate-600">
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                <span>現在のユーザー: <strong id="currentUserName" class="text-slate-800 font-bold">---</strong></span>
-            </div>
-            <span id="currentUserDetail" class="text-slate-400">(--歳 / --)</span>
+        <!-- タブ切替 -->
+        <div class="seg" role="tablist">
+            <button class="seg-btn active" data-tab="search" role="tab"><i class="fa-solid fa-magnifying-glass"></i> 料理検索</button>
+            <button class="seg-btn" data-tab="guide" role="tab"><i class="fa-solid fa-book-open"></i> 栄養素一覧</button>
         </div>
 
+        <div id="tabSearch" class="flex flex-col gap-6">
         <!-- 料理検索フォーム -->
-        <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-3">
+        <section class="bg-white p-5 rounded-none shadow-sm border border-slate-100 flex flex-col gap-3">
             <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <i class="fa-solid fa-utensils text-emerald-500"></i> 料理検索
             </label>
             <div class="flex gap-2">
-                <input type="text" id="dishInput" placeholder="例: カツカレー、サーモン握り..." class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
-                <button id="searchBtn" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white px-5 rounded-xl text-sm font-bold flex items-center justify-center transition-all shadow-md shadow-emerald-100">
+                <input type="text" id="dishInput" placeholder="料理名を入力してください" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-none text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <button id="searchBtn" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white px-5 rounded-none text-sm font-bold flex items-center justify-center transition-all shadow-md shadow-emerald-100">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
             </div>
@@ -131,17 +151,17 @@
                 <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xl"></i>
                 <p class="text-sm font-bold text-amber-800">見つかりませんでした</p>
             </div>
-            <p class="text-xs text-amber-700 mt-1 pl-8">入力された料理が存在しないか、栄養データを判定できませんでした。別の料理名でお試しください。</p>
+            <p class="text-xs text-amber-700 mt-1 pl-8">入力された料理が存在しません。別の料理名でお試しください。</p>
         </div>
 
         <!-- ローディング表示 -->
         <div id="loadingBox" class="hidden flex-col items-center justify-center py-10 gap-3">
             <div class="w-10 h-10 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
-            <p class="text-xs font-medium text-slate-500 animate-pulse">Gemini AIが栄養素を解析中...</p>
+            <p class="text-xs font-medium text-slate-500 animate-pulse">AIが栄養素を解析中...</p>
         </div>
 
         <!-- 検索結果（栄養素テーブル） -->
-        <section id="resultSection" class="hidden bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-4">
+        <section id="resultSection" class="hidden bg-white p-5 rounded-none shadow-sm border border-slate-100 flex flex-col gap-4">
             <div class="flex justify-between items-end border-b border-slate-100 pb-3">
                 <div>
                     <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">1人前の推定栄養素</span>
@@ -156,7 +176,7 @@
             </div>
 
             <!-- テーブルコンテナ（高さ指定 + 縦スクロール） -->
-            <div class="overflow-hidden border border-slate-100 rounded-2xl">
+            <div class="overflow-hidden border border-slate-100 rounded-none">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-100 z-10">
                         <tr>
@@ -171,6 +191,15 @@
                 </table>
             </div>
         </section>
+
+        </div>
+
+        <!-- 栄養素ずかん -->
+        <div id="tabGuide" class="hidden flex-col gap-4">
+            <div id="guideChips" class="flex gap-2 overflow-x-auto pb-1"></div>
+            <div id="guideList" class="flex flex-col gap-3"></div>
+            <p class="text-[10px] text-slate-400 leading-relaxed">※代表的な食材の目安です。含有量は食材・調理法で異なります。</p>
+        </div>
 
     </main>
 
@@ -688,6 +717,75 @@
             }
 
             document.getElementById('resultSection').classList.remove('hidden');
+        }
+
+        // ===== タブ切替 =====
+        document.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => {
+            document.querySelectorAll('.seg-btn').forEach(x => x.classList.toggle('active', x === b));
+            const g = b.dataset.tab === 'guide';
+            document.getElementById('tabSearch').classList.toggle('hidden', g);
+            const gt = document.getElementById('tabGuide');
+            gt.classList.toggle('hidden', !g);
+            gt.classList.toggle('flex', g);
+            if (g) renderGuide();
+        }));
+
+        // ===== 栄養素ずかん =====
+        const GUIDE = `エネルギー|m|⚡|体を動かし体温を保つ燃料。過不足は体重に直結します|ごはん,パン,麺類,油脂,肉類
+タンパク質|m|💪|筋肉・皮膚・血液など体をつくる材料|鶏肉,魚,卵,大豆,乳製品
+脂質|m|🧈|効率のよいエネルギー源で、細胞膜やホルモンの材料|油,バター,ナッツ,青魚
+炭水化物|m|🍚|脳と体の主なエネルギー源|ごはん,パン,麺,いも,果物
+食物繊維|m|🥦|腸内環境を整え、血糖やコレステロールの上昇を緩やかに|ごぼう,海藻,きのこ,豆類,玄米
+飽和脂肪酸|f|🥓|摂りすぎるとLDLコレステロールが増えやすい脂|バター,ラード,肉の脂身,チーズ
+n-6系脂肪酸|f|🌻|必須脂肪酸。細胞膜の材料になる|大豆油,コーン油,ごま油,くるみ
+n-3系脂肪酸|f|🐟|必須脂肪酸。血中脂質や脳の働きを支える|サバ,サンマ,サケ,えごま油
+ビタミンA|v|🥕|目・皮膚・粘膜を健やかに保つ|レバー,うなぎ,にんじん,かぼちゃ
+ビタミンD|v|☀️|カルシウムの吸収を助け、骨を強くする|サケ,サンマ,きのこ,しらす
+ビタミンE|v|🥜|抗酸化作用で細胞の酸化を防ぐ|アーモンド,アボカド,かぼちゃ,植物油
+ビタミンK|v|🥬|血液凝固や骨の形成に関わる|納豆,小松菜,ブロッコリー,わかめ
+ビタミンB1|v|🍖|糖質をエネルギーに変える|豚肉,うなぎ,玄米,大豆
+ビタミンB2|v|🥚|脂質の代謝を助け、皮膚や粘膜を守る|レバー,卵,納豆,牛乳
+ビタミンB6|v|🍌|タンパク質の代謝に必要|まぐろ,かつお,鶏ささみ,バナナ
+ビタミンB12|v|🦪|赤血球の生成を助け、神経機能を保つ|あさり,しじみ,レバー,のり
+ナイアシン|v|🍄|糖質・脂質・タンパク質の代謝を助ける|たらこ,かつお,鶏肉,まいたけ
+葉酸|v|🌿|赤血球や細胞の新生に必須。妊娠期は特に重要|枝豆,ブロッコリー,いちご,焼きのり
+パントテン酸|v|🍳|エネルギー産生や脂質代謝に関わる|レバー,納豆,卵,鶏肉
+ビオチン|v|🥛|皮膚や髪の健康維持、糖・脂質代謝を助ける|レバー,卵黄,大豆,いわし
+ビタミンC|v|🍊|コラーゲン生成・抗酸化・鉄の吸収を助ける|柑橘類,キウイ,ピーマン,いちご
+ナトリウム（食塩相当量）|x|🧂|体液バランスを保つが、摂りすぎは高血圧の一因|塩,しょうゆ,みそ,漬物
+カリウム|x|🍠|余分なナトリウムの排出を助ける|バナナ,さつまいも,ほうれん草,昆布
+カルシウム|x|🥛|骨や歯の主成分。筋肉や神経の働きにも必要|牛乳,チーズ,小魚,豆腐
+マグネシウム|x|🌰|骨の形成や多くの酵素反応を支える|アーモンド,納豆,ひじき,玄米
+リン|x|🍖|骨や歯をつくり、エネルギー代謝に関わる|魚,肉,乳製品,卵
+鉄|x|🩸|血液中で酸素を運ぶヘモグロビンの材料|レバー,あさり,赤身肉,小松菜
+亜鉛|x|🦪|味覚・免疫・たんぱく質合成に必要|牡蠣,牛肉,レバー,チーズ
+銅|x|🦐|鉄の利用を助け、血液や骨の健康を支える|牛レバー,えび,ココア,ナッツ
+マンガン|x|🍵|骨の形成や糖・脂質代謝に関わる|玄米,納豆,しょうが,緑茶
+ヨウ素|x|🌊|甲状腺ホルモンの材料|昆布,わかめ,のり,魚介
+セレン|x|🍤|抗酸化酵素の成分で免疫を支える|かつお,まぐろ,卵,小麦
+クロム|x|🥗|糖質・脂質の代謝を助ける|あおさ,海藻,穀類,魚介
+モリブデン|x|🫘|尿酸などの代謝酵素の成分|大豆,納豆,レバー,そら豆`.split('\n').map(l => { const [n,c,e,d,f] = l.split('|'); return { n, c, e, d, f: f.split(',') }; });
+        const GUIDE_CATS = { all: 'すべて', m: '三大栄養素', f: '脂質', v: 'ビタミン', x: 'ミネラル' };
+        let guideCat = 'all';
+        function renderGuide() {
+            const chips = document.getElementById('guideChips');
+            chips.innerHTML = '';
+            Object.entries(GUIDE_CATS).forEach(([k, v]) => {
+                const b = document.createElement('button');
+                b.className = 'chip' + (k === guideCat ? ' on' : '');
+                b.textContent = v;
+                b.onclick = () => { guideCat = k; renderGuide(); };
+                chips.appendChild(b);
+            });
+            const list = document.getElementById('guideList');
+            list.innerHTML = '';
+            GUIDE.filter(x => guideCat === 'all' || x.c === guideCat).forEach(x => {
+                const a = document.createElement('article');
+                a.className = 'gcard pop';
+                const foods = x.f.map(t => `<span class="food">${t}</span>`).join(' ');
+                a.innerHTML = `<div class="gicon">${x.e}</div><div class="flex-1 min-w-0"><h3 class="font-black text-slate-800 text-sm">${x.n}</h3><p class="text-xs text-slate-500 mt-0.5 mb-2 leading-relaxed">${x.d}</p><div class="flex flex-wrap gap-1.5">${foods}</div></div>`;
+                list.appendChild(a);
+            });
         }
     </script>
 </body>
