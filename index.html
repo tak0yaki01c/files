@@ -60,7 +60,11 @@
         .seg-btn.active{background:#000!important}
         .chip{flex:none;padding:.4rem .9rem;border-radius:999px;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.85);color:#9a3412;border:1px solid #fed7aa}
         .chip.on{background:#f97316;color:#fff;border-color:#f97316}
-        .gcard{display:flex;gap:.85rem;padding:1rem;border-radius:24px;background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 24px rgba(249,115,22,.12)}
+        .gcard{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;min-height:2.4rem;padding:.35rem .3rem;border-radius:10px;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.95);box-shadow:0 2px 8px rgba(249,115,22,.12);cursor:pointer;font-weight:900;font-size:.72rem;line-height:1.25;color:#1e293b}
+        .gcard:hover,.gcard.open{z-index:50;background:#fff7ed;border-color:#fdba74}
+        .gtip{display:none;position:absolute;top:calc(100% + 6px);width:14rem;padding:.7rem .8rem;border-radius:12px;background:#fff;box-shadow:0 12px 30px rgba(0,0,0,.22);border:1px solid #fed7aa;text-align:left;font-weight:400;cursor:default}
+        .gcard:hover .gtip,.gcard.open .gtip{display:block}
+        .gtip.l{left:0}.gtip.c{left:50%;transform:translateX(-50%)}.gtip.r{right:0}
         .gicon{flex:none;width:3rem;height:3rem;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:linear-gradient(135deg,#ffedd5,#fef08a)}
         .food{display:inline-block;padding:.15rem .6rem;border-radius:999px;font-size:.68rem;font-weight:700;background:#fef3c7;color:#92400e}
         .pop{animation:pop .3s ease}@keyframes pop{from{opacity:0;transform:scale(.96)}}
@@ -192,7 +196,7 @@
         <!-- 栄養素ずかん -->
         <div id="tabGuide" class="hidden flex-col gap-4">
             <div id="guideChips" class="flex gap-2 overflow-x-auto pb-1"[scrollbar-width:none] [&::-webkit-scrollbar]:hidden></div>
-            <div id="guideList" class="flex flex-col gap-3"></div>
+            <div id="guideList" class="grid grid-cols-3 gap-2"></div>
             <p class="text-[10px] text-slate-400 leading-relaxed">※代表的な食材の目安です。含有量は食材・調理法で異なります。</p>
         </div>
 
@@ -726,8 +730,7 @@
         }));
 
         // ===== 栄養素ずかん =====
-        const GUIDE = `エネルギー|m|⚡|体を動かし体温を保つ燃料。過不足は体重に直結します|ごはん,パン,麺類,油脂,肉類
-タンパク質|m|💪|筋肉・皮膚・血液など体をつくる材料|鶏肉,魚,卵,大豆,乳製品
+        const GUIDE = `タンパク質|m|💪|筋肉・皮膚・血液など体をつくる材料|鶏肉,魚,卵,大豆,乳製品
 脂質|m|🧈|効率のよいエネルギー源で、細胞膜やホルモンの材料|油,バター,ナッツ,青魚
 炭水化物|m|🍚|脳と体の主なエネルギー源|ごはん,パン,麺,いも,果物
 食物繊維|m|🥦|腸内環境を整え、血糖やコレステロールの上昇を緩やかに|ごぼう,海藻,きのこ,豆類,玄米
@@ -760,7 +763,7 @@ n-3系脂肪酸|f|🐟|必須脂肪酸。血中脂質や脳の働きを支える
 セレン|x|🍤|抗酸化酵素の成分で免疫を支える|かつお,まぐろ,卵,小麦
 クロム|x|🥗|糖質・脂質の代謝を助ける|あおさ,海藻,穀類,魚介
 モリブデン|x|🫘|尿酸などの代謝酵素の成分|大豆,納豆,レバー,そら豆`.split('\n').map(l => { const [n,c,e,d,f] = l.split('|'); return { n, c, e, d, f: f.split(',') }; });
-        const GUIDE_CATS = { all: 'すべて', m: '三大栄養素', f: '脂質', v: 'ビタミン', x: 'ミネラル' };
+        const GUIDE_CATS = { all: 'すべて', m: '五大栄養素', f: '脂質', v: 'ビタミン', x: 'ミネラル' };
         let guideCat = 'all';
         function renderGuide() {
             const chips = document.getElementById('guideChips');
@@ -774,11 +777,13 @@ n-3系脂肪酸|f|🐟|必須脂肪酸。血中脂質や脳の働きを支える
             });
             const list = document.getElementById('guideList');
             list.innerHTML = '';
-            GUIDE.filter(x => guideCat === 'all' || x.c === guideCat).forEach(x => {
+            GUIDE.filter(x => guideCat === 'all' || x.c === guideCat).forEach((x, idx) => {
                 const a = document.createElement('article');
                 a.className = 'gcard pop';
+                const pos = ['l', 'c', 'r'][idx % 3];
                 const foods = x.f.map(t => `<span class="food">${t}</span>`).join(' ');
-                a.innerHTML = `<div class="gicon">${x.e}</div><div class="flex-1 min-w-0"><h3 class="font-black text-slate-800 text-sm">${x.n}</h3><p class="text-xs text-slate-500 mt-0.5 mb-2 leading-relaxed">${x.d}</p><div class="flex flex-wrap gap-1.5">${foods}</div></div>`;
+                a.innerHTML = `<span>${x.n}</span><div class="gtip ${pos}"><h3 class="font-black text-slate-800 text-sm">${x.e} ${x.n}</h3><p class="text-xs text-slate-500 mt-1 mb-2 leading-relaxed">${x.d}</p><div class="flex flex-wrap gap-1.5">${foods}</div></div>`;
+                a.onclick = () => { const was = a.classList.contains('open'); list.querySelectorAll('.gcard.open').forEach(el => el.classList.remove('open')); if (!was) a.classList.add('open'); };
                 list.appendChild(a);
             });
         }
