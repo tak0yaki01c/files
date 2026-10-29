@@ -137,7 +137,7 @@
         <!-- 料理検索フォーム -->
         <section class="flex flex-col gap-3" style="background:transparent!important;border:none!important;box-shadow:none!important;backdrop-filter:none!important;padding:0">
             <div class="flex gap-2">
-                <input type="text" id="dishInput" style="font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" placeholder="料理名を入力してください" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-none text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <input type="text" id="dishInput" style="font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" placeholder="料理名を入力（複数は . で区切る 例: カレー.サラダ）" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-none text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
                 <button id="searchBtn" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white px-5 rounded-none text-sm font-bold flex items-center justify-center transition-all shadow-md shadow-emerald-100">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
@@ -171,14 +171,14 @@
                         </button>
                     </div>
                 </div>
-                <span class="text-xs text-slate-400">（除外: 含有量0）</span>
+                <span id="resultNote" class="text-xs text-slate-400 text-right">（除外: 含有量0）</span>
             </div>
 
             <!-- テーブルコンテナ（高さ指定 + 縦スクロール） -->
-            <div class="overflow-hidden border border-slate-100 rounded-none">
+            <div class="overflow-x-auto border border-slate-100 rounded-none">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-100 z-10">
-                        <tr>
+                        <tr id="nutritionTableHead">
                             <th class="p-3 font-medium">項目名</th>
                             <th class="p-3 font-medium">含有量</th>
                             <th class="p-3 font-medium">推奨量/目安</th>
@@ -588,8 +588,13 @@
         document.getElementById('dishInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
 
         // ===== 使用材料モーダル =====
+        // currentIngredients = [{ dish: '料理名', items: [{name, amount}, ...] }, ...]
         let currentIngredients = [];
         const ingredientModal = document.getElementById('ingredientModal');
+
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
 
         document.getElementById('ingredientBtn').addEventListener('click', () => {
             const list = document.getElementById('ingredientList');
@@ -597,21 +602,32 @@
             document.getElementById('ingredientTitle').textContent =
                 document.getElementById('resultDishTitle').textContent + ' の使用材料';
 
-            if (currentIngredients.length === 0) {
+            const multi = currentIngredients.length > 1;
+            const total = currentIngredients.reduce((n, g) => n + g.items.length, 0);
+
+            if (total === 0) {
                 list.innerHTML = '<li class="py-3 text-center text-slate-400 text-xs">材料データがありません</li>';
             } else {
-                currentIngredients.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = 'flex justify-between items-center py-2';
-                    const name = document.createElement('span');
-                    name.className = 'text-slate-700';
-                    name.textContent = item.name;
-                    const amount = document.createElement('strong');
-                    amount.className = 'text-emerald-600';
-                    amount.textContent = item.amount;
-                    li.appendChild(name);
-                    li.appendChild(amount);
-                    list.appendChild(li);
+                currentIngredients.forEach(group => {
+                    if (multi) {
+                        const head = document.createElement('li');
+                        head.className = 'py-1.5 px-2 bg-slate-50 text-xs font-bold text-slate-600';
+                        head.textContent = group.dish;
+                        list.appendChild(head);
+                    }
+                    group.items.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'flex justify-between items-center py-2';
+                        const name = document.createElement('span');
+                        name.className = 'text-slate-700';
+                        name.textContent = item.name;
+                        const amount = document.createElement('strong');
+                        amount.className = 'text-emerald-600';
+                        amount.textContent = item.amount;
+                        li.appendChild(name);
+                        li.appendChild(amount);
+                        list.appendChild(li);
+                    });
                 });
             }
             ingredientModal.classList.remove('hidden');
@@ -619,8 +635,11 @@
         document.getElementById('closeIngredientBtn').addEventListener('click', () => ingredientModal.classList.add('hidden'));
 
         // ===== 検索結果の保存（履歴・キャッシュ） =====
+        function normName(dish) {
+            return dish.normalize('NFKC').toLowerCase().replace(/\s+/g, '');
+        }
         function cacheKey(dish, user) {
-            return dish.normalize('NFKC').toLowerCase().replace(/\s+/g, '') + '|' + user.age + '|' + user.gender;
+            return normName(dish) + '|' + user.age + '|' + user.gender;
         }
         function trimCache() {
             const keys = Object.keys(appData.cache);
@@ -634,85 +653,179 @@
             saveStorage();
         }
 
+        // ===== 複数料理の区切り（. または ．で区切る。1.5 のような小数点は区切りにしない） =====
+        const MAX_DISHES = 5;
+        function splitDishes(raw) {
+            const parts = raw.split(/(?<![0-9０-９])[.．]|[.．](?![0-9０-９])/).map(t => t.trim()).filter(Boolean);
+            const seen = new Set();
+            const out = [];
+            parts.forEach(p => {
+                const k = normName(p);
+                if (!seen.has(k)) { seen.add(k); out.push(p); }
+            });
+            return out;
+        }
+
         async function performSearch() {
-            const dish = document.getElementById('dishInput').value.trim();
-            if (!dish) return;
+            const raw = document.getElementById('dishInput').value.trim();
+            if (!raw) return;
             const currentUser = appData.users.find(u => u.id === appData.currentUserId);
             if (!currentUser) return;
+
+            let dishes = splitDishes(raw);
+            if (dishes.length === 0) return;
+            const truncated = dishes.length > MAX_DISHES;
+            dishes = dishes.slice(0, MAX_DISHES);
 
             document.getElementById('alertBox').classList.add('hidden');
             document.getElementById('resultSection').classList.add('hidden');
 
-            // 2回目以降は、保存済みの結果をそのまま表示（同じ料理・年齢・性別なら同じ値）
-            const key = cacheKey(dish, currentUser);
-            const cached = appData.cache[key];
-            if (cached) {
-                addHistory(currentUser.id, dish);
-                renderNutritionTable(dish, cached.nutrients, cached.ingredients);
-                return;
-            }
+            // 保存済みの料理はそのまま使う（同じ料理・年齢・性別なら同じ値）。未保存の料理だけAIに問い合わせる
+            const results = new Array(dishes.length).fill(null);
+            const missing = [];
+            dishes.forEach((d, i) => {
+                const cached = appData.cache[cacheKey(d, currentUser)];
+                if (cached) results[i] = cached; else missing.push(i);
+            });
 
-            document.getElementById('loadingBox').classList.remove('hidden');
+            if (missing.length > 0) {
+                document.getElementById('loadingBox').classList.remove('hidden');
+                try {
+                    // 2品以上なら "A.B" の形でそのまま送る（サーバー側が「.」を見て複数用プロンプトに切り替える）
+                    const res = await fetch(API_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ dish: missing.map(i => dishes[i]).join('.'), age: currentUser.age, gender: currentUser.gender })
+                    });
 
-            try {
-                const res = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dish: dish, age: currentUser.age, gender: currentUser.gender })
-                });
+                    const resData = await res.json();
+                    document.getElementById('loadingBox').classList.add('hidden');
 
-                const resData = await res.json();
-                document.getElementById('loadingBox').classList.add('hidden');
+                    if (!resData.candidates || !resData.candidates[0]) {
+                        document.getElementById('alertBox').classList.remove('hidden');
+                        return;
+                    }
 
-                if (!resData.candidates || !resData.candidates[0]) {
+                    let textResp = resData.candidates[0].content.parts[0].text;
+                    textResp = textResp.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const parsed = JSON.parse(textResp);
+
+                    const store = (dishIdx, item) => {
+                        if (item && item.exists && Array.isArray(item.nutrients) && item.nutrients.length > 0) {
+                            const entry = { ingredients: Array.isArray(item.ingredients) ? item.ingredients : [], nutrients: item.nutrients };
+                            results[dishIdx] = entry;
+                            appData.cache[cacheKey(dishes[dishIdx], currentUser)] = entry;
+                        }
+                    };
+
+                    if (Array.isArray(parsed.dishes)) {
+                        // 複数料理の応答: 入力順に対応させる（順序が崩れていたら名前で探す）
+                        missing.forEach((di, k) => {
+                            let item = parsed.dishes[k];
+                            if (!item || (item.name && normName(String(item.name)) !== normName(dishes[di]))) {
+                                const byName = parsed.dishes.find(x => x && x.name && normName(String(x.name)) === normName(dishes[di]));
+                                if (byName) item = byName;
+                            }
+                            store(di, item);
+                        });
+                    } else {
+                        // 従来形式（1品）の応答
+                        store(missing[0], parsed);
+                    }
+                    trimCache();
+                } catch (err) {
+                    console.error(err);
+                    document.getElementById('loadingBox').classList.add('hidden');
                     document.getElementById('alertBox').classList.remove('hidden');
                     return;
                 }
-
-                let textResp = resData.candidates[0].content.parts[0].text;
-                textResp = textResp.replace(/```json/g, '').replace(/```/g, '').trim();
-                const parsed = JSON.parse(textResp);
-
-                if (!parsed.exists) {
-                    document.getElementById('alertBox').classList.remove('hidden');
-                } else {
-                    appData.cache[key] = { ingredients: parsed.ingredients || [], nutrients: parsed.nutrients };
-                    trimCache();
-                    addHistory(currentUser.id, dish);
-
-                    renderNutritionTable(dish, parsed.nutrients, parsed.ingredients);
-                }
-            } catch (err) {
-                console.error(err);
-                document.getElementById('loadingBox').classList.add('hidden');
-                document.getElementById('alertBox').classList.remove('hidden');
             }
+
+            const okNames = [];
+            const okData = [];
+            const notFound = [];
+            dishes.forEach((d, i) => {
+                if (results[i]) { okNames.push(d); okData.push(results[i]); } else { notFound.push(d); }
+            });
+
+            if (okData.length === 0) {
+                document.getElementById('alertBox').classList.remove('hidden');
+                return;
+            }
+
+            addHistory(currentUser.id, okNames.join('.'));
+            let note = '（除外: 含有量0）';
+            if (notFound.length > 0) note += `\n※認識できなかった料理: ${notFound.join('、')}`;
+            if (truncated) note += `\n※最初の${MAX_DISHES}品のみ表示しています`;
+            renderNutritionTable(okNames, okData, note);
         }
 
-        function renderNutritionTable(dishName, nutrients, ingredients) {
-            currentIngredients = Array.isArray(ingredients) ? ingredients : [];
-            document.getElementById('resultDishTitle').textContent = dishName;
+        // 1品なら従来どおり「項目名 / 含有量 / 推奨量」、複数なら「項目名 / 1つ目 / 2つ目 / … / 推奨量」の表にする
+        function renderNutritionTable(names, datas, note) {
+            const multi = names.length > 1;
+            currentIngredients = names.map((n, i) => ({
+                dish: n,
+                items: Array.isArray(datas[i].ingredients) ? datas[i].ingredients : []
+            }));
+
+            const title = document.getElementById('resultDishTitle');
+            title.textContent = names.join(' / ');
+            title.className = (multi ? 'text-base' : 'text-xl') + ' font-bold text-slate-800';
+            const noteEl = document.getElementById('resultNote');
+            noteEl.textContent = note || '（除外: 含有量0）';
+            noteEl.style.whiteSpace = 'pre-line';
+
+            const cellPad = multi ? 'p-2' : 'p-3';
+
+            // 見出し行
+            const head = document.getElementById('nutritionTableHead');
+            head.innerHTML = '';
+            const addTh = (text, extra) => {
+                const th = document.createElement('th');
+                th.className = cellPad + ' font-medium ' + (extra || '');
+                th.textContent = text;
+                head.appendChild(th);
+            };
+            addTh('項目名', multi ? 'whitespace-nowrap' : '');
+            if (multi) names.forEach(n => addTh(n, 'min-w-[4.5rem] text-emerald-700'));
+            else addTh('含有量');
+            addTh('推奨量/目安', multi ? 'whitespace-nowrap' : '');
+
+            // 項目の並び順は、最初に現れた順
+            const maps = datas.map(d => {
+                const m = new Map();
+                (d.nutrients || []).forEach(it => { if (it && !m.has(it.name)) m.set(it.name, it); });
+                return m;
+            });
+            const order = [];
+            maps.forEach(m => m.forEach((_, k) => { if (!order.includes(k)) order.push(k); }));
+
             const tbody = document.getElementById('nutritionTableBody');
             tbody.innerHTML = '';
 
             let count = 0;
-            nutrients.forEach(item => {
-                const valNum = parseFloat(item.amount);
-                if (isNaN(valNum) || valNum <= 0) return;
+            order.forEach(nutName => {
+                const items = maps.map(m => m.get(nutName));
+                // すべての料理で含有量が0（または数値でない）の項目は表示しない
+                const anyPositive = items.some(it => it && parseFloat(it.amount) > 0);
+                if (!anyPositive) return;
 
                 count++;
+                const rec = items.find(it => it && it.recommended);
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors";
-                tr.innerHTML = `
-                    <td class="p-3 font-medium text-slate-800">${item.name}</td>
-                    <td class="p-3 font-bold text-emerald-600">${item.amount}</td>
-                    <td class="p-3 text-slate-500 text-[11px]">${item.recommended}</td>
-                `;
+                tr.className = 'hover:bg-slate-50 transition-colors';
+                let html = `<td class="${cellPad} font-medium text-slate-800${multi ? ' whitespace-nowrap' : ''}">${esc(nutName)}</td>`;
+                items.forEach(it => {
+                    const v = it ? it.amount : '-';
+                    html += `<td class="${cellPad} font-bold text-emerald-600${multi ? ' whitespace-nowrap' : ''}">${esc(v)}</td>`;
+                });
+                html += `<td class="${cellPad} text-slate-500 text-[11px]${multi ? ' whitespace-nowrap' : ''}">${esc(rec ? rec.recommended : '')}</td>`;
+                tr.innerHTML = html;
                 tbody.appendChild(tr);
             });
 
             if (count === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">表示可能な栄養素データがありませんでした</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${names.length + 2}" class="p-4 text-center text-slate-400">表示可能な栄養素データがありませんでした</td></tr>`;
             }
 
             document.getElementById('resultSection').classList.remove('hidden');
