@@ -52,6 +52,7 @@
         main section,main>div.bg-white,footer{background:rgba(255,255,255,.78)!important;backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,.8)!important;box-shadow:0 10px 30px rgba(249,115,22,.14)}
         footer{background:rgba(255,247,237,.8)!important;box-shadow:none}
         #searchBtn,.seg-btn.active{background:linear-gradient(135deg,#fb923c,#fbbf24)!important}
+        #searchBtn{background:#dc8157!important}
         table thead{background:#ffedd5!important;color:#9a3412!important}
         .seg{display:flex;gap:4px;padding:4px;border-radius:18px;background:#fff;border:1px solid #000;backdrop-filter:blur(12px)}
         .seg-btn{flex:1;padding:.65rem .5rem;border-radius:14px;font-weight:900;font-size:.8rem;color:#000;background:#fff;transition:all .25s}
@@ -71,7 +72,9 @@
     <div class="max-w-md mx-auto px-4 h-[60px] relative flex items-center justify-center"></div>
             <!-- 中央：ロゴ -->
    <img src="logo.png" alt="EA.SyS ロゴ" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-15 w-auto max-w-[40%] object-contain">
-            <!-- ハンバーガーの左：ユーザー情報（小さく表示） -->
+            <!-- ハンバーガー付近だけ色を変える背景 -->
+    <div class="absolute right-0 top-0 h-full w-[4.5rem]" style="background:rgba(244,167,185,.95)"></div>
+   <!-- ハンバーガーの左：ユーザー情報（小さく表示） -->
         <div class="absolute right-[3.75rem] top-1/2 -translate-y-1/2 text-right leading-tight text-slate-700 max-w-[6rem]">
             <div id="currentUserName" class="text-[11px] font-bold truncate">---</div>
             <div id="currentUserDetail" class="text-[10px] opacity-80 whitespace-nowrap">(--歳 / --)</div>
